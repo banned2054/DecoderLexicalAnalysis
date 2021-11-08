@@ -313,7 +313,7 @@ void Lexical_analysis::analysis_word()
 				}
 				break;
 			}
-			case 8:
+			case 8://"<"
 			{
 				state = 0;
 				switch (now_char)
@@ -338,7 +338,7 @@ void Lexical_analysis::analysis_word()
 				words.push_back(word);
 				break;
 			}
-			case 9:
+			case 9://">"
 			{
 				if (now_char == '=')
 				{
@@ -353,7 +353,7 @@ void Lexical_analysis::analysis_word()
 				state = 0;
 				break;
 			}
-			case 10:
+			case 10://"："
 			{
 				if (now_char == '=')
 				{
@@ -368,7 +368,7 @@ void Lexical_analysis::analysis_word()
 				types.push_back(IS_SYMBOL);
 				break;
 			}
-			case 11:
+			case 11://注释开始
 			{
 				if (now_char == '/') state = 16;
 				if (now_char == '*') state = 12;
@@ -381,7 +381,7 @@ void Lexical_analysis::analysis_word()
 				}
 				break;
 			}
-			case 12:
+			case 12://注释结尾
 			{
 				if (now_char == '*')
 				{
@@ -397,7 +397,7 @@ void Lexical_analysis::analysis_word()
 				else state = 12;
 				break;
 			}
-			case 13:
+			case 13://引号匹配
 			{
 				if (now_char == '\\')
 				{
@@ -421,7 +421,7 @@ void Lexical_analysis::analysis_word()
 				}
 				break;
 			}
-			case 14:
+			case 14://引号匹配
 			{
 				if (now_char == '\\')
 				{
@@ -445,19 +445,19 @@ void Lexical_analysis::analysis_word()
 				}
 				break;
 			}
-			case 15:
+			case 15://报错处理
 			{
 				error(i, --j, CHAR_ERROR);
 				state = 0;
 				break;
 			}
-			case 16:
+			case 16://"//"单行注释
 			{
 				if (j == line.size() - 1) state = 0;
 				break;
 			}
 			}
-			if (j == line.size() - 1)
+			if (j >= line.size() - 1)
 			{
 				if (state == 1)
 				{
@@ -471,9 +471,15 @@ void Lexical_analysis::analysis_word()
 						types.push_back(IS_WORD);
 					}
 				}
-				if (state >= 2)
+				if (state >= 2 && state <=7)
 				{
-
+					words.push_back(word);
+					types.push_back(IS_NUMBER);
+				}
+				if (state >= 8 && state <= 10)
+				{
+					words.push_back(word);
+					types.push_back(IS_SYMBOL);
 				}
 			}
 		}
