@@ -56,5 +56,5 @@ private:
 	void handle_digit_state(char, string &, unsigned long long &, int &);
 	void handle_less_than_state(char, string &, unsigned long long &, int &);
 	void handle_greater_than_state(char, string &, unsigned long long &, int &);
-	void handle_comment_start_state(const char, unsigned long long &, const string &, int &);
+	void handle_comment_start_state(char, unsigned long long &, const string &, int &);
 };
