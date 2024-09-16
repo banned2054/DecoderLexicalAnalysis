@@ -1,4 +1,4 @@
-﻿#include "lexical_analysis.h"
+#include "lexical_analysis.h"
 
 lexical_analysis::lexical_analysis()
 = default;
@@ -349,7 +349,7 @@ void lexical_analysis::analysis_word()
 					state = 0;
 					break;
 				}
-				case 10 : //"��"
+				case 10 : //"："
 				{
 					if (now_char == '=')
 					{
@@ -364,7 +364,7 @@ void lexical_analysis::analysis_word()
 					types.emplace_back(IS_SYMBOL);
 					break;
 				}
-				case 11 : //ע�Ϳ�ʼ
+				case 11 : //注释开始
 				{
 					if (now_char == '/') state = 16;
 					if (now_char == '*') state = 12;
@@ -377,7 +377,7 @@ void lexical_analysis::analysis_word()
 					}
 					break;
 				}
-				case 12 : //ע�ͽ�β
+				case 12 : //注释结尾
 				{
 					if (now_char == '*')
 					{
@@ -393,7 +393,7 @@ void lexical_analysis::analysis_word()
 					else state = 12;
 					break;
 				}
-				case 13 : //����ƥ��
+				case 13 : //引号匹配
 				{
 					if (now_char == '\\')
 					{
@@ -417,7 +417,7 @@ void lexical_analysis::analysis_word()
 					}
 					break;
 				}
-				case 14 : //����ƥ��
+				case 14 : //引号匹配
 				{
 					if (now_char == '\\')
 					{
@@ -441,13 +441,13 @@ void lexical_analysis::analysis_word()
 					}
 					break;
 				}
-				case 15 : //��������
+				case 15 : //报错处理
 				{
 					error(i, --j, CHAR_ERROR);
 					state = 0;
 					break;
 				}
-				case 16 : //"//"����ע��
+				case 16 : //"//"单行注释
 				{
 					if (j == line.size() - 1) state = 0;
 					break;
