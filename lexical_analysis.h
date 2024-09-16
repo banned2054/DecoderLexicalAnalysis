@@ -48,4 +48,13 @@ public:
 	static bool is_digit(char);
 	bool        is_keyword(const string &) const;
 	static char is_space(unsigned long long &, const string &);
+
+private:
+	// 新增的用于处理不同状态的私有函数
+	void handle_initial_state(unsigned long long &, unsigned long long, string &, int &);
+	void handle_identifier_state(char, string &, unsigned long long &, int &);
+	void handle_digit_state(char, string &, unsigned long long &, int &);
+	void handle_less_than_state(char, string &, unsigned long long &, int &);
+	void handle_greater_than_state(char, string &, unsigned long long &, int &);
+	void handle_comment_start_state(const char, unsigned long long &, const string &, int &);
 };

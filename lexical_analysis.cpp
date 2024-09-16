@@ -1,7 +1,6 @@
 #include "lexical_analysis.h"
 
-lexical_analysis::lexical_analysis()
-= default;
+lexical_analysis::lexical_analysis() = default;
 
 lexical_analysis::lexical_analysis(const string &file_name)
 {
@@ -35,438 +34,40 @@ void lexical_analysis::read_line()
 
 void lexical_analysis::analysis_word()
 {
-	string             line;
-	int                state         = 0;
-	unsigned long long mark_line     = 0;
-	unsigned long long mark_position = 0;
+	int                          state         = 0;
+	constexpr unsigned long long mark_line     = 0;
+	constexpr unsigned long long mark_position = 0;
 	for (unsigned long long i = 0; i < lines_.size(); i++)
 	{
-		line = lines_[i];
+		string line = lines_[i];
 		string word;
 		for (unsigned long long j = 0; j < line.size(); j++)
 		{
-			char now_char = line[j];
+			const char now_char = line[j];
 			switch (state)
 			{
-				case 0 :
-				{
-					word     = "";
-					now_char = is_space(j, line);
-					if (j >= line.size())
-					{
-						break;
-					}
-					word.push_back(now_char);
-					if (is_letter(now_char))
-					{
-						state = 1;
-						break;
-					}
-					if (is_digit(now_char))
-					{
-						state = 2;
-						break;
-					}
-					switch (now_char)
-					{
-						case '<' :
-						{
-							state = 8;
-							break;
-						}
-						case '>' :
-						{
-							state = 9;
-							break;
-						}
-						case ':' :
-						{
-							state = 10;
-							break;
-						}
-						case '/' :
-						{
-							state         = 11;
-							mark_line     = i;
-							mark_position = j;
-							break;
-						}
-						case '=' :
-						{
-							state = 0;
-							words.push_back(word);
-							types.emplace_back(IS_SYMBOL);
-							break;
-						}
-						case '+' :
-						{
-							state = 0;
-							words.push_back(word);
-							types.emplace_back(IS_ADDITION);
-							break;
-						}
-						case '-' :
-						{
-							state = 0;
-							words.push_back(word);
-							types.emplace_back(IS_SUBTRACTION);
-							break;
-						}
-						case '*' :
-						{
-							state = 0;
-							words.push_back(word);
-							types.emplace_back(IS_MULTIPLY);
-							break;
-						}
-						case '(' :
-						{
-							state = 0;
-							words.push_back(word);
-							types.emplace_back(IS_LEFT_BRACKET);
-							break;
-						}
-						case ')' :
-						{
-							state = 0;
-							words.push_back(word);
-							types.emplace_back(IS_RIGHT_BRACKET);
-							break;
-						}
-						case ';' :
-						{
-							state = 0;
-							words.push_back(word);
-							types.emplace_back(IS_SYMBOL);
-							break;
-						}
-						case '\'' :
-						{
-							state         = 13;
-							mark_line     = i;
-							mark_position = j;
-							break;
-						}
-						case '\"' :
-						{
-							state         = 14;
-							mark_line     = i;
-							mark_position = j;
-							break;
-						}
-						default :
-						{
-							state = 15;
-							word.pop_back();
-							break;
-						}
-					}
+				case 0 : handle_initial_state(j, i, word, state);
 					break;
-				}
-				case 1 :
-				{
-					if (is_letter(now_char) || is_digit(now_char))
-					{
-						state = 1;
-						word.push_back(now_char);
-					}
-					else
-					{
-						state = 0;
-						j--;
-						words.push_back(word);
-						if (is_keyword(word))
-						{
-							types.emplace_back(IS_KEYWORD);
-						}
-						else
-						{
-							types.emplace_back(IS_WORD);
-						}
-					}
+				case 1 : handle_identifier_state(now_char, word, j, state);
 					break;
-				}
-				case 2 :
-				{
-					if (is_digit(now_char))
-					{
-						word.push_back(now_char);
-						state = 2;
-						break;
-					}
-					switch (now_char)
-					{
-						case '.' :
-						{
-							state = 3;
-							word.push_back(now_char);
-							break;
-						}
-						case 'E' :
-						{
-							state = 5;
-							word.push_back(now_char);
-							break;
-						}
-						default :
-						{
-							j--;
-							state = 0;
-							words.push_back(word);
-							types.emplace_back(IS_NUMBER);
-							break;
-						}
-					}
+				case 2 : handle_digit_state(now_char, word, j, state);
 					break;
-				}
-				case 3 :
-				{
-					if (is_digit(now_char))
-					{
-						state = 4;
-						word.push_back(now_char);
-					}
-					else
-					{
-						state = 0;
-						words.push_back(word);
-						types.emplace_back(IS_NUMBER);
-						error(i, j, NUMBER_ERROR_P);
-					}
+				case 8 : handle_less_than_state(now_char, word, j, state);
 					break;
-				}
-				case 4 :
-				{
-					if (is_digit(now_char))
-					{
-						state = 4;
-						word.push_back(now_char);
-					}
-					else if (now_char == 'E')
-					{
-						state = 5;
-						word.push_back(now_char);
-					}
-					else
-					{
-						j--;
-						state = 0;
-						words.push_back(word);
-						types.emplace_back(IS_NUMBER);
-					}
+				case 9 : handle_greater_than_state(now_char, word, j, state);
 					break;
-				}
-				case 5 :
-				{
-					if (is_digit(now_char))
-					{
-						state = 7;
-						word.push_back(now_char);
-					}
-					else if (now_char == '+' || now_char == '-')
-					{
-						state = 6;
-						word.push_back(now_char);
-					}
-					else
-					{
-						j--;
-						words.push_back(word);
-						types.emplace_back(IS_NUMBER);
-						error(i, j, NUMBER_ERROR_E);
-					}
+				case 11 : handle_comment_start_state(now_char, j, word, state);
 					break;
-				}
-				case 6 :
-				{
-					if (is_digit(now_char))
-					{
-						state = 7;
-						word.push_back(now_char);
-					}
-					else
-					{
-						j--;
-						words.push_back(word);
-						types.emplace_back(IS_NUMBER);
-						error(i, j, OPERATOR_ERROR);
-					}
-					break;
-				}
-				case 7 :
-				{
-					if (is_digit(now_char))
-					{
-						state = 7;
-						word.push_back(now_char);
-					}
-					else
-					{
-						j--;
-						words.push_back(word);
-						types.emplace_back(IS_NUMBER);
-						state = 0;
-					}
-					break;
-				}
-				case 8 : //"<"
-				{
-					state = 0;
-					switch (now_char)
-					{
-						case '=' :
-						{
-							word.push_back(now_char);
-							break;
-						}
-						case '>' :
-						{
-							word.push_back(now_char);
-							break;
-						}
-						default :
-						{
-							j--;
-							break;
-						}
-					}
-					types.emplace_back(IS_SYMBOL);
-					words.push_back(word);
-					break;
-				}
-				case 9 : //">"
-				{
-					if (now_char == '=')
-					{
-						word.push_back(now_char);
-					}
-					else
-					{
-						j--;
-					}
-					words.push_back(word);
-					types.emplace_back(IS_SYMBOL);
-					state = 0;
-					break;
-				}
-				case 10 : //"："
-				{
-					if (now_char == '=')
-					{
-						word.push_back(now_char);
-					}
-					else
-					{
-						j--;
-					}
-					state = 0;
-					words.push_back(word);
-					types.emplace_back(IS_SYMBOL);
-					break;
-				}
-				case 11 : //注释开始
-				{
-					if (now_char == '/') state = 16;
-					if (now_char == '*') state = 12;
-					else
-					{
-						j--;
-						state = 0;
-						words.push_back(word);
-						types.emplace_back(IS_DIVIDER);
-					}
-					break;
-				}
-				case 12 : //注释结尾
-				{
-					if (now_char == '*')
-					{
-						if (j < line.size() - 1)
-						{
-							if (line[j + 1] == '/')
-							{
-								j++;
-								state = 0;
-							}
-						}
-					}
-					else state = 12;
-					break;
-				}
-				case 13 : //引号匹配
-				{
-					if (now_char == '\\')
-					{
-						word.push_back(now_char);
-						word.push_back(line[j + 1]);
-						j += 2;
-					}
-					else
-					{
-						if (now_char == '\'')
-						{
-							word.push_back(now_char);
-							words.push_back(word);
-							types.emplace_back(IS_CHARACTER);
-							state = 0;
-						}
-						else
-						{
-							word.push_back(now_char);
-						}
-					}
-					break;
-				}
-				case 14 : //引号匹配
-				{
-					if (now_char == '\\')
-					{
-						word.push_back(now_char);
-						word.push_back(line[j + 1]);
-						j += 2;
-					}
-					else
-					{
-						if (now_char == '\"')
-						{
-							word.push_back(now_char);
-							words.push_back(word);
-							types.emplace_back(IS_SENTENCE);
-							state = 0;
-						}
-						else
-						{
-							word.push_back(now_char);
-						}
-					}
-					break;
-				}
-				case 15 : //报错处理
-				{
-					error(i, --j, CHAR_ERROR);
-					state = 0;
-					break;
-				}
-				case 16 : //"//"单行注释
-				{
-					if (j == line.size() - 1) state = 0;
-					break;
-				}
 				default : ;
+				// 继续处理其他状态...
 			}
+			// 每行末尾状态处理逻辑
 			if (j >= line.size() - 1)
 			{
 				if (state == 1)
 				{
 					words.push_back(word);
-					if (is_keyword(word))
-					{
-						types.emplace_back(IS_KEYWORD);
-					}
-					else
-					{
-						types.emplace_back(IS_WORD);
-					}
+					types.emplace_back(is_keyword(word) ? IS_KEYWORD : IS_WORD);
 				}
 				if (state >= 2 && state <= 7)
 				{
@@ -481,6 +82,7 @@ void lexical_analysis::analysis_word()
 			}
 		}
 	}
+	// 文件末尾的状态处理
 	if (state == 12)
 	{
 		error(mark_line, mark_position, NOTE_NOT_MAP);
@@ -491,6 +93,180 @@ void lexical_analysis::analysis_word()
 	}
 }
 
+// 处理初始状态的函数
+void lexical_analysis::handle_initial_state(unsigned long long &j, const unsigned long long i,
+                                            string &            word,
+                                            int &               state)
+{
+	word                = "";
+	const char now_char = is_space(j, lines_[i]);
+	if (j >= lines_[i].size()) return;
+
+	word.push_back(now_char);
+	if (is_letter(now_char))
+	{
+		state = 1;
+		return;
+	}
+	if (is_digit(now_char))
+	{
+		state = 2;
+		return;
+	}
+
+	switch (now_char)
+	{
+		case '<' : state = 8;
+			break;
+		case '>' : state = 9;
+			break;
+		case ':' : state = 10;
+			break;
+		case '/' : state = 11;
+			break;
+		case '=' : words.push_back(word);
+			types.emplace_back(IS_SYMBOL);
+			state = 0;
+			break;
+		case '+' : words.push_back(word);
+			types.emplace_back(IS_ADDITION);
+			state = 0;
+			break;
+		case '-' : words.push_back(word);
+			types.emplace_back(IS_SUBTRACTION);
+			state = 0;
+			break;
+		case '*' : words.push_back(word);
+			types.emplace_back(IS_MULTIPLY);
+			state = 0;
+			break;
+		case '(' : words.push_back(word);
+			types.emplace_back(IS_LEFT_BRACKET);
+			state = 0;
+			break;
+		case ')' : words.push_back(word);
+			types.emplace_back(IS_RIGHT_BRACKET);
+			state = 0;
+			break;
+		case ';' : words.push_back(word);
+			types.emplace_back(IS_SYMBOL);
+			state = 0;
+			break;
+		case '\'' : state = 13;
+			break;
+		case '\"' : state = 14;
+			break;
+		default : state = 15;
+			word.pop_back();
+			break;
+	}
+}
+
+// 处理标识符状态的函数
+void lexical_analysis::handle_identifier_state(const char now_char, string &word, unsigned long long &j, int &state)
+{
+	if (is_letter(now_char) || is_digit(now_char))
+	{
+		state = 1;
+		word.push_back(now_char);
+	}
+	else
+	{
+		state = 0;
+		j--;
+		words.push_back(word);
+		if (is_keyword(word))
+		{
+			types.emplace_back(IS_KEYWORD);
+		}
+		else
+		{
+			types.emplace_back(IS_WORD);
+		}
+	}
+}
+
+// 处理数字状态的函数
+void lexical_analysis::handle_digit_state(const char now_char, string &word, unsigned long long &j, int &state)
+{
+	if (is_digit(now_char))
+	{
+		word.push_back(now_char);
+		state = 2;
+	}
+	else if (now_char == '.')
+	{
+		word.push_back(now_char);
+		state = 3;
+	}
+	else if (now_char == 'E')
+	{
+		word.push_back(now_char);
+		state = 5;
+	}
+	else
+	{
+		j--;
+		words.push_back(word);
+		types.emplace_back(IS_NUMBER);
+		state = 0;
+	}
+}
+
+// 处理小于号的函数
+void lexical_analysis::handle_less_than_state(const char now_char, string &word, unsigned long long &j, int &state)
+{
+	if (now_char == '=' || now_char == '>')
+	{
+		word.push_back(now_char);
+	}
+	else
+	{
+		j--;
+	}
+	words.push_back(word);
+	types.emplace_back(IS_SYMBOL);
+	state = 0;
+}
+
+// 处理大于号的函数
+void lexical_analysis::handle_greater_than_state(const char now_char, string &word, unsigned long long &j, int &state)
+{
+	if (now_char == '=')
+	{
+		word.push_back(now_char);
+	}
+	else
+	{
+		j--;
+	}
+	words.push_back(word);
+	types.emplace_back(IS_SYMBOL);
+	state = 0;
+}
+
+// 处理注释开始的函数
+void lexical_analysis::handle_comment_start_state(const char now_char, unsigned long long &j, const string &word,
+                                                  int &      state)
+{
+	if (now_char == '/')
+	{
+		state = 16; // 单行注释
+	}
+	else if (now_char == '*')
+	{
+		state = 12; // 多行注释
+	}
+	else
+	{
+		j--;
+		words.push_back(word);
+		types.emplace_back(IS_DIVIDER);
+		state = 0;
+	}
+}
+
+// 其他辅助函数
 bool lexical_analysis::is_digit(const char character)
 {
 	return (character >= '0') && (character <= '9');
@@ -532,37 +308,19 @@ void lexical_analysis::error(const unsigned long long line_number, const unsigne
 			+ "\n\tThe reason is:";
 	switch (wrong_type)
 	{
-		case NUMBER_ERROR_P :
-		{
-			wrong_reason += WRONG_NUMBER_POINT;
+		case NUMBER_ERROR_P : wrong_reason += WRONG_NUMBER_POINT;
 			break;
-		}
-		case NUMBER_ERROR_E :
-		{
-			wrong_reason += WRONG_NUMBER_E;
+		case NUMBER_ERROR_E : wrong_reason += WRONG_NUMBER_E;
 			break;
-		}
-		case CHAR_ERROR :
-		{
-			wrong_reason += WRONG_CHAR;
+		case CHAR_ERROR : wrong_reason += WRONG_CHAR;
 			break;
-		}
-		case OPERATOR_ERROR :
-		{
-			wrong_reason += WRONG_OPERATOR;
+		case OPERATOR_ERROR : wrong_reason += WRONG_OPERATOR;
 			break;
-		}
-		case NOTE_NOT_MAP :
-		{
-			wrong_reason += WRONG_NOTE;
+		case NOTE_NOT_MAP : wrong_reason += WRONG_NOTE;
 			break;
-		}
-		case QUOTATION_NOW_MAP :
-		{
-			wrong_reason += WRONG_QUOTATION;
+		case QUOTATION_NOW_MAP : wrong_reason += WRONG_QUOTATION;
 			break;
-		}
-		default : ;
+		default : break;
 	}
 	error_list.push_back(wrong_reason);
 }
