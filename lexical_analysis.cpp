@@ -102,21 +102,21 @@ void lexical_analysis::analysis_word()
 						{
 							state = 0;
 							words.push_back(word);
-							types.emplace_back(IS_ADDTION);
+							types.emplace_back(IS_ADDITION);
 							break;
 						}
 						case '-' :
 						{
 							state = 0;
 							words.push_back(word);
-							types.emplace_back(IS_SUBTRATION);
+							types.emplace_back(IS_SUBTRACTION);
 							break;
 						}
 						case '*' :
 						{
 							state = 0;
 							words.push_back(word);
-							types.emplace_back(IS_MULTPLY);
+							types.emplace_back(IS_MULTIPLY);
 							break;
 						}
 						case '(' :
